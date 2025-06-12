@@ -1,0 +1,211 @@
+////////////////////////////////////////////////////////////////////////////////
+1.Task: 
+Table/s creation; Value Insertion; Write the query; Show the Result; Draw ER diagram of your 
+database and if possible write discussion on your work. 
+INSURANCE DATABASE: 
+person (driver-id, name, address) 
+car (license, model, year) 
+accident (report-number, date, location) 
+owns (driver-id, license) 
+participated (driver-id, license, report-number,damage-amount) 
+Consider the tables, where the primary keys are underlined. 
+Insert 5 records for each of above. (keeping eye on queries for the specific insertion). 
+Construct the following SQL queries for this database. 
+a. Find the total number of people who owned cars that were involved in accidents in 1989. 
+b. Find the number of accidents in which the cars belonging to “John Smith” were involved.                   
+(using ‘exists’ keyword preferable ) 
+c. Add a new accident to the database; assume any values for required attributes. 
+d. Delete the Mazda belonging to “John Smith”. 
+e. Update the damage amount for the car with license number “AABB2000” in 
+the accident with report number “AR2197” to $3000. 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+CREATE TABLE person (
+    driver_id VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50),
+    address VARCHAR(100)
+);
+
+CREATE TABLE car (
+    license VARCHAR(10) PRIMARY KEY,
+    model VARCHAR(30),
+    year INT
+);
+
+CREATE TABLE accident (
+    report_number VARCHAR(10) PRIMARY KEY,
+    date DATE,
+    location VARCHAR(100)
+);
+
+CREATE TABLE owns (
+    driver_id VARCHAR(10),
+    license VARCHAR(10),
+    PRIMARY KEY (driver_id, license),
+    FOREIGN KEY (driver_id) REFERENCES person(driver_id),
+    FOREIGN KEY (license) REFERENCES car(license)
+);
+
+CREATE TABLE participated (
+    driver_id VARCHAR(10),
+    license VARCHAR(10),
+    report_number VARCHAR(10),
+    damage_amount DECIMAL(10,2),
+    PRIMARY KEY (driver_id, license, report_number),
+    FOREIGN KEY (driver_id) REFERENCES person(driver_id),
+    FOREIGN KEY (license) REFERENCES car(license),
+    FOREIGN KEY (report_number) REFERENCES accident(report_number)
+);
+
+
+2. Insert Sample Records (5 for Each Table)
+
+-- person
+INSERT INTO person VALUES ('D001', 'John Smith', '123 Elm St');
+INSERT INTO person VALUES ('D002', 'Alice Brown', '456 Pine St');
+INSERT INTO person VALUES ('D003', 'Mark Lee', '789 Oak St');
+INSERT INTO person VALUES ('D004', 'Sara Khan', '321 Maple St');
+INSERT INTO person VALUES ('D005', 'Tom Hardy', '654 Birch St');
+
+-- car
+INSERT INTO car VALUES ('AABB2000', 'Mazda', 1987);
+INSERT INTO car VALUES ('CCDD3000', 'Toyota', 1990);
+INSERT INTO car VALUES ('EEFF4000', 'Ford', 1989);
+INSERT INTO car VALUES ('GGHH5000', 'Honda', 1991);
+INSERT INTO car VALUES ('IIJJ6000', 'Nissan', 1985);
+
+-- accident
+INSERT INTO accident VALUES ('AR2197', '1989-06-15', 'Downtown');
+INSERT INTO accident VALUES ('BR3300', '1990-09-22', 'Airport Road');
+INSERT INTO accident VALUES ('CR8801', '1989-11-05', 'Main Street');
+INSERT INTO accident VALUES ('DR7772', '1991-01-12', 'Highway 7');
+INSERT INTO accident VALUES ('ER9012', '1988-04-20', 'City Center');
+
+-- owns
+INSERT INTO owns VALUES ('D001', 'AABB2000'); -- John Smith's Mazda
+INSERT INTO owns VALUES ('D002', 'CCDD3000');
+INSERT INTO owns VALUES ('D003', 'EEFF4000');
+INSERT INTO owns VALUES ('D004', 'GGHH5000');
+INSERT INTO owns VALUES ('D005', 'IIJJ6000');
+
+-- participated
+INSERT INTO participated VALUES ('D001', 'AABB2000', 'AR2197', 2500.00);
+INSERT INTO participated VALUES ('D003', 'EEFF4000', 'CR8801', 1000.00);
+INSERT INTO participated VALUES ('D004', 'GGHH5000', 'DR7772', 500.00);
+INSERT INTO participated VALUES ('D002', 'CCDD3000', 'BR3300', 1500.00);
+INSERT INTO participated VALUES ('D005', 'IIJJ6000', 'ER9012', 700.00);
+
+
+.......................OR................................
+
+1. person Table
+
+INSERT INTO person VALUES ('&driver_id1', '&name1', '&address1');
+INSERT INTO person VALUES ('&driver_id2', '&name2', '&address2');
+INSERT INTO person VALUES ('&driver_id3', '&name3', '&address3');
+INSERT INTO person VALUES ('&driver_id4', '&name4', '&address4');
+INSERT INTO person VALUES ('&driver_id5', '&name5', '&address5');
+
+✅ 3. Required SQL Queries
+
+a. Find the total number of people who owned cars involved in accidents in 1989.
+
+SELECT COUNT(DISTINCT o.driver_id) AS total_people
+FROM owns o
+JOIN participated p ON o.license = p.license
+JOIN accident a ON p.report_number = a.report_number
+WHERE YEAR(a.date) = 1989;
+
+.................OR..........................
+
+SELECT COUNT(DISTINCT driver_id) AS total_people
+FROM owns
+WHERE license IN (
+    SELECT license
+    FROM participated
+    WHERE report_number IN (
+        SELECT report_number
+        FROM accident
+        WHERE YEAR(date) = 1989
+    )
+);
+
+b. Find the number of accidents involving cars owned by "John Smith".
+(Using EXISTS keyword)
+
+SELECT COUNT(DISTINCT p.report_number) AS accident_count
+FROM participated p
+WHERE EXISTS (
+    SELECT 1
+    FROM owns o
+    JOIN person pe ON o.driver_id = pe.driver_id
+    WHERE pe.name = 'John Smith' AND o.license = p.license
+);
+....................OR.................
+
+SELECT COUNT(DISTINCT report_number) AS accident_count
+FROM participated
+WHERE EXISTS (
+    SELECT 1
+    FROM owns
+    WHERE owns.license = participated.license AND owns.driver_id = (
+        SELECT driver_id
+        FROM person
+        WHERE name = 'John Smith'
+    )
+);
+
+c. Add a new accident to the database
+
+INSERT INTO accident VALUES ('FR9911', '1992-07-14', 'Green Street');
+..................OR...........................
+
+INSERT INTO accident (report_number, date, location)
+VALUES ('FR9911', '1992-07-14', 'Green Street');
+
+
+d. Delete the Mazda belonging to “John Smith”
+
+DELETE FROM car
+WHERE license = (
+    SELECT o.license
+    FROM owns o
+    JOIN person p ON o.driver_id = p.driver_id
+    JOIN car c ON o.license = c.license
+    WHERE p.name = 'John Smith' AND c.model = 'Mazda'
+);
+.................OR.............................
+
+DELETE FROM car
+WHERE license = (
+    SELECT license
+    FROM owns
+    WHERE driver_id = (
+        SELECT driver_id
+        FROM person
+        WHERE name = 'John Smith'
+    )
+    AND license IN (
+        SELECT license
+        FROM car
+        WHERE model = 'Mazda'
+    )
+);
+
+
+e. Update the damage amount for car “AABB2000” in accident “AR2197”
+
+UPDATE participated
+SET damage_amount = 3000
+WHERE license = 'AABB2000' AND report_number = 'AR2197';
+
+.........................OR.......................
+
+UPDATE participated
+SET damage_amount = 3000
+WHERE license = 'AABB2000' AND report_number = 'AR2197';
+
+
+
+
