@@ -1,0 +1,137 @@
+Task:
+Table/s creation ; Value Insertion; Write the query ; Show the Result; Draw ER diagram of your
+database and if possible write discussion on your work
+Consider the following database:
+Catalog(book_id, title, author_id, pub_id, year_of_publication, cat_id, price)
+Author(author_id, name, city, country)
+Publisher(pub_id, name, city, country)
+Category(cat_id,description)
+Create the tables and insert at least 5 records in each (keeping eye on queries for the specific
+insertion).
+Primary keys are underlined.
+author_id is foreign key referencing Author.
+pub_id is foreign key referencing Publisher.
+cat_id is foreign key referencing Category
+=============================================
+
+CREATE TABLE Author (
+    author_id VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50),
+    city VARCHAR(30),
+    country VARCHAR(30)
+);
+
+CREATE TABLE Publisher (
+    pub_id VARCHAR(10) PRIMARY KEY,
+    name VARCHAR(50),
+    city VARCHAR(30),
+    country VARCHAR(30)
+);
+
+CREATE TABLE Category (
+    cat_id VARCHAR(10) PRIMARY KEY,
+    description VARCHAR(50)
+);
+
+-- Updated Catalog table with full date support
+CREATE TABLE Catalog (
+    book_id VARCHAR(10) PRIMARY KEY,
+    title VARCHAR(100),
+    author_id VARCHAR(10),
+    pub_id VARCHAR(10),
+    publication_date DATE,         -- changed from INT to DATE
+    cat_id VARCHAR(10),
+    price DECIMAL(6,2),
+    FOREIGN KEY (author_id) REFERENCES Author(author_id),
+    FOREIGN KEY (pub_id) REFERENCES Publisher(pub_id),
+    FOREIGN KEY (cat_id) REFERENCES Category(cat_id)
+);
+
+============================
+-- Author
+INSERT INTO Author VALUES ('A1', 'Chetan Bhagat', 'Mumbai', 'India');
+INSERT INTO Author VALUES ('A2', 'J.K. Rowling', 'London', 'UK');
+INSERT INTO Author VALUES ('A3', 'George Orwell', 'Motihari', 'India');
+INSERT INTO Author VALUES ('A4', 'Paulo Coelho', 'Rio de Janeiro', 'Brazil');
+INSERT INTO Author VALUES ('A5', 'Dan Brown', 'Exeter', 'USA');
+
+-- Publisher
+INSERT INTO Publisher VALUES ('P1', 'Penguin', 'New York', 'USA');
+INSERT INTO Publisher VALUES ('P2', 'HarperCollins', 'London', 'UK');
+INSERT INTO Publisher VALUES ('P3', 'Rupa', 'Delhi', 'India');
+INSERT INTO Publisher VALUES ('P4', 'Scholastic', 'New York', 'USA');
+INSERT INTO Publisher VALUES ('P5', 'Random House', 'Berlin', 'Germany');
+
+-- Category
+INSERT INTO Category VALUES ('C1', 'Fiction');
+INSERT INTO Category VALUES ('C2', 'Thriller');
+INSERT INTO Category VALUES ('C3', 'Fantasy');
+INSERT INTO Category VALUES ('C4', 'Biography');
+INSERT INTO Category VALUES ('C5', 'Philosophy');
+
+-- Catalog
+INSERT INTO Catalog VALUES ('B1', 'Five Point Someone', 'A1', 'P3', TO_DATE('12-JUL-2004', 'DD-MON-YYYY'), 'C1', 250.00);
+INSERT INTO Catalog VALUES ('B2', 'Harry Potter', 'A2', 'P4', TO_DATE('26-JUN-1997', 'DD-MON-YYYY'), 'C3', 500.00);
+INSERT INTO Catalog VALUES ('B3', '1984', 'A3', 'P1', TO_DATE('08-JUN-1949', 'DD-MON-YYYY'), 'C2', 300.00);
+INSERT INTO Catalog VALUES ('B4', 'The Alchemist', 'A4', 'P5', TO_DATE('15-JUL-1988', 'DD-MON-YYYY'), 'C5', 350.00);
+INSERT INTO Catalog VALUES ('B5', 'The Da Vinci Code', 'A5', 'P2', TO_DATE('18-MAR-2003', 'DD-MON-YYYY'), 'C2', 450.00);
+
+========================================
+Perform the following queries:
+a. Give the name of books whose price is greater than maximum of category average
+=>SELECT title
+FROM Catalog
+WHERE price > (
+    SELECT MAX(avg_price)
+    FROM (
+        SELECT cat_id, AVG(price) AS avg_price
+        FROM Catalog
+        GROUP BY cat_id
+    )
+);
+
+b. Get publisher name, average, maximum and minimum price of book of all publishers
+ other than McGraw-Hill.
+=>SELECT Publisher.name, 
+       AVG(Catalog.price), 
+       MAX(Catalog.price), 
+       MIN(Catalog.price)
+FROM Catalog, Publisher
+WHERE Catalog.pub_id = Publisher.pub_id
+AND Publisher.name <> 'McGraw-Hill'
+GROUP BY Publisher.name;
+
+c. Get the title, price of all books whose prices are greater than the average price of the book in business category.
+=>SELECT Catalog.title, Catalog.price
+FROM Catalog, Category
+WHERE Catalog.cat_id = Category.cat_id
+AND Catalog.price > (
+    SELECT AVG(Catalog.price)
+    FROM Catalog, Category
+    WHERE Catalog.cat_id = Category.cat_id
+    AND Category.description = 'Business'
+);
+
+d. Increase the price of all books which are published before 1997 by 20%
+=>UPDATE Catalog
+SET price = price * 1.20
+WHERE year_of_publication < 1997;
+
+e. Give the title, author’s name, publisher’s name,year of publication, price of all computer books.
+=>SELECT Catalog.title, Author.name, Publisher.name, 
+       Catalog.year_of_publication, Catalog.price
+FROM Catalog, Author, Publisher, Category
+WHERE Catalog.author_id = Author.author_id
+AND Catalog.pub_id = Publisher.pub_id
+AND Catalog.cat_id = Category.cat_id
+AND Category.description = 'Computer';
+
+f. Give all author’s name whose books are published on month of July
+=>SELECT DISTINCT Author.name
+FROM Catalog, Author
+WHERE Catalog.author_id = Author.author_id
+AND TO_CHAR(Catalog.year_of_publication, 'MM') = '07';
+
+
+
+

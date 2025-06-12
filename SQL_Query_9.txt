@@ -1,0 +1,105 @@
+Task:
+Table/s creation ; Value Insertion; Write the query ; Show the Result; Draw ER diagram of your
+database and if possible write discussion on your work
+Consider the following database:
+StudentMaster(Roll, Class, Name, Total Marks, StreamID).
+Stream(StreamID, Name, Duration, Fees)
+Create the tables and insert at least 10 records in first table and 4 records in second table (keeping
+eye on queries for the specific insertion).
+* Primary keys are underlined.
+* StreamId in StudentMaster is foreign key
+ referencing Stream
+
+CREATE TABLE Stream (
+    StreamID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Duration INT, -- in years
+    Fees DECIMAL(10, 2)
+);
+
+CREATE TABLE StudentMaster (
+    Roll INT PRIMARY KEY,
+    Class VARCHAR(10),
+    Name VARCHAR(50),
+    TotalMarks INT,
+    StreamID INT,
+    FOREIGN KEY (StreamID) REFERENCES Stream(StreamID)
+);
+============
+INSERT INTO Stream VALUES (101, 'Science', 3, 50000);
+INSERT INTO Stream VALUES (102, 'Commerce', 3, 45000);
+INSERT INTO Stream VALUES (103, 'Arts', 3, 40000);
+INSERT INTO Stream VALUES (104, 'Computer Science', 4, 60000);
+===========
+INSERT INTO StudentMaster VALUES (1, '12A', 'Rohit Das', 420, 101);
+INSERT INTO StudentMaster VALUES (2, '12B', 'Aditi Roy', 450, 102);
+INSERT INTO StudentMaster VALUES (3, '11A', 'Sayan Sen', 410, 101);
+INSERT INTO StudentMaster VALUES (4, '12C', 'Priya Gupta', 400, 103);
+INSERT INTO StudentMaster VALUES (5, '11B', 'Arjun Ghosh', 460, 104);
+INSERT INTO StudentMaster VALUES (6, '11C', 'Sneha Paul', 440, 101);
+INSERT INTO StudentMaster VALUES (7, '12A', 'Meghna Sarkar', 430, 103);
+INSERT INTO StudentMaster VALUES (8, '12B', 'Abhishek Roy', 470, 102);
+INSERT INTO StudentMaster VALUES (9, '11A', 'Tania Das', 390, 104);
+INSERT INTO StudentMaster VALUES (10, '12C', 'Ritam Dey', 455, 101);
+================
+. List those students who do not appear in the exam yet (i.e. Total Marks not applicable)
+=>SELECT * 
+FROM StudentMaster 
+WHERE TotalMarks IS NULL;
+
+b. Give student details that get highest marks stream wise.
+=>SELECT SM.* 
+FROM StudentMaster SM, 
+     (SELECT StreamID, MAX(TotalMarks) AS MaxMarks 
+      FROM StudentMaster 
+      WHERE TotalMarks IS NOT NULL 
+      GROUP BY StreamID) Temp 
+WHERE SM.StreamID = Temp.StreamID 
+  AND SM.TotalMarks = Temp.MaxMarks;
+
+c. List student details who take admission in longest duration course.
+=>SELECT SM.*
+FROM StudentMaster SM, Stream S
+WHERE SM.StreamID = S.StreamID
+  AND S.Duration = (SELECT MAX(Duration) FROM Stream);
+
+d. List details of each student who gets more than the average marks in stream.
+=>SELECT SM.*
+FROM StudentMaster SM, 
+     (SELECT StreamID, AVG(TotalMarks) AS AvgMarks 
+      FROM StudentMaster 
+      WHERE TotalMarks IS NOT NULL 
+      GROUP BY StreamID) Temp
+WHERE SM.StreamID = Temp.StreamID
+  AND SM.TotalMarks > Temp.AvgMarks;
+
+
+e. List student whose name contains seven letters and fees between 30000 and 60000
+=>SELECT SM.*
+FROM StudentMaster SM, Stream S
+WHERE SM.StreamID = S.StreamID
+  AND LENGTH(SM.Name) = 7
+  AND S.Fees BETWEEN 30000 AND 60000;
+
+f. List those students whose middle letter and first letter same.
+=>SELECT * 
+FROM StudentMaster
+WHERE LENGTH(Name) >= 4
+  AND SUBSTR(Name, 1, 1) = SUBSTR(Name, 4, 1);
+
+g. Create a view for stream which contains stream id, stream name, duration, fees
+ and number of students. 
+=>CREATE VIEW StreamReport AS
+SELECT S.StreamID, S.Name, S.Duration, S.Fees, COUNT(SM.Roll) AS NumStudents
+FROM Stream S, StudentMaster SM
+WHERE S.StreamID = SM.StreamID(+)
+GROUP BY S.StreamID, S.Name, S.Duration, S.Fees;
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,145 @@
+Task:
+Table/s creation ; Value Insertion; Write the query ; Show the Result; Draw ER diagram of your
+database and if possible write discussion on your work
+ Create the database and insert the following values in tables.
+Sailors Boats
+S_ID S_NAME RATING AGE
+-------------------- -------------------- ---------- ----------
+s502 Lusber 8 55.5
+s503 Andy 8 25.5
+s504 Rusty 10 35
+s505 Horatio 7 35
+s506 Zorba 10 16
+s507 Horatio 9 35.5
+s508 Art 3 25.5
+s509 Bob 3 63.5
+BID BNAME COLOR
+--------------- ----------- ------------
+101 interlake blue
+102 interlake red
+103 clipper green
+104 marine red
+ Booking Marks
+S_ID B_ID DAY
+-------------------- -------------------- ---------
+s502 102 11/Oct/98
+s502 103 11/Oct/98
+s505 102 09/Aug/98
+s505 104 11/Oct/98
+s506 101 10/Nov/98
+s506 102 10/Aug/98
+s507 103 09/Jul/98
+============================
+
+CREATE TABLE Sailors (
+    S_ID VARCHAR(10) PRIMARY KEY,
+    S_NAME VARCHAR(20),
+    RATING INT,
+    AGE FLOAT
+);
+
+CREATE TABLE Boats (
+    BID INT PRIMARY KEY,
+    BNAME VARCHAR(20),
+    COLOR VARCHAR(10)
+);
+
+CREATE TABLE Booking (
+    S_ID VARCHAR(10),
+    B_ID INT,
+    DAY DATE,
+    FOREIGN KEY (S_ID) REFERENCES Sailors(S_ID),
+    FOREIGN KEY (B_ID) REFERENCES Boats(BID)
+);
+
+========
+-- Sailors
+INSERT INTO Sailors VALUES ('s502', 'Lusber', 8, 55.5);
+INSERT INTO Sailors VALUES ('s503', 'Andy', 8, 25.5);
+INSERT INTO Sailors VALUES ('s504', 'Rusty', 10, 35);
+INSERT INTO Sailors VALUES ('s505', 'Horatio', 7, 35);
+INSERT INTO Sailors VALUES ('s506', 'Zorba', 10, 16);
+INSERT INTO Sailors VALUES ('s507', 'Horatio', 9, 35.5);
+INSERT INTO Sailors VALUES ('s508', 'Art', 3, 25.5);
+INSERT INTO Sailors VALUES ('s509', 'Bob', 3, 63.5);
+
+-- Boats
+INSERT INTO Boats VALUES (101, 'interlake', 'blue');
+INSERT INTO Boats VALUES (102, 'interlake', 'red');
+INSERT INTO Boats VALUES (103, 'clipper', 'green');
+INSERT INTO Boats VALUES (104, 'marine', 'red');
+
+-- Booking
+INSERT INTO Booking VALUES ('s502', 102, TO_DATE('11-Oct-1998','DD-Mon-YYYY'));
+INSERT INTO Booking VALUES ('s502', 103, TO_DATE('11-Oct-1998','DD-Mon-YYYY'));
+INSERT INTO Booking VALUES ('s505', 102, TO_DATE('09-Aug-1998','DD-Mon-YYYY'));
+INSERT INTO Booking VALUES ('s505', 104, TO_DATE('11-Oct-1998','DD-Mon-YYYY'));
+INSERT INTO Booking VALUES ('s506', 101, TO_DATE('10-Nov-1998','DD-Mon-YYYY'));
+INSERT INTO Booking VALUES ('s506', 102, TO_DATE('10-Aug-1998','DD-Mon-YYYY'));
+INSERT INTO Booking VALUES ('s507', 103, TO_DATE('09-Jul-1998','DD-Mon-YYYY'));
+
+
+
+
+
+
+
+
+
+
+
+
+1. Find the average age of sailors with rating of 10.
+=>SELECT AVG(AGE) AS avg_age
+FROM Sailors
+WHERE RATING = 10;
+
+2. Find all sailors with rating above 7.
+=>SELECT * FROM Sailors WHERE RATING > 7;
+S_ID   S_NAME   RATING   AGE
+-----  -------  -------  -----
+s502   Lusber   8        55.5
+s503   Andy     8        25.5
+s504   Rusty    10       35
+s506   Zorba    10       16
+s507   Horatio  9        35.5
+
+3. Find the names of sailors who have reserved boat 103
+=>
+SELECT DISTINCT S.S_NAME
+FROM Sailors S
+JOIN Booking B ON S.S_ID = B.S_ID
+WHERE B.B_ID = 103;
+
+S_NAME
+-------
+Lusber
+Horatio
+
+
+4. Find the names of sailors who have reserved red boat.
+=>SELECT DISTINCT S.S_NAME
+FROM Sailors S
+JOIN Booking B ON S.S_ID = B.S_ID
+JOIN Boats BO ON B.B_ID = BO.BID
+WHERE BO.COLOR = 'red';
+
+5. Find sids of sailors who have reserved red boat or green boat.
+=>SELECT DISTINCT B.S_ID
+FROM Booking B
+JOIN Boats BO ON B.B_ID = BO.BID
+WHERE BO.COLOR IN ('red', 'green');
+
+
+6. Find the colors of boats reserved by Horatio.
+=>SELECT DISTINCT BO.COLOR
+FROM Boats BO
+JOIN Booking B ON BO.BID = B.B_ID
+JOIN Sailors S ON S.S_ID = B.S_ID
+WHERE S.S_NAME = 'Horatio';
+
+7. Find sid and age of sailors who have reserved a boat in November
+=>SELECT DISTINCT S.S_ID, S.AGE
+FROM Sailors S
+JOIN Booking B ON S.S_ID = B.S_ID
+WHERE TO_CHAR(B.DAY, 'Mon') = 'Nov';

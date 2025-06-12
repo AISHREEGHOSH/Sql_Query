@@ -1,0 +1,114 @@
+You said:
+ Task:
+Table/s creation ; Value Insertion; Write the query ; Show the Result; Draw ER diagram of your
+database and if possible write discussion on your work
+Consider the following database:
+EMPLOYEE
+(EName, SSN_No , DoB Date, City , Sex Char, Salary , Manager_SSN , Dept_No)
+DEPARTMENT (Dept_Name, Dept_Num , MGR_SSN )
+WORKS_ON (SSN_Num , Porject , Hours)
+Create the tables and insert at least 8 records in First Table, 5 records in Second table, 4 records in
+Third table (keeping eye on queries for the specific insertion).
+SSN_No is primary key in EMPLOYEE.
+Dept_Num is primary key in DEPARTMENT.
+(SSN_Num,Project) is primary key inWORKS_ON.
+Dept_No in EMPLOYEE is foreign key referencing
+DEPARTMENT and SSN_Num in WORKS_ON
+is foreign key referencing EMPLOYEE.
+=====================
+CREATE TABLE DEPARTMENT (
+    Dept_Name VARCHAR(50),
+    Dept_Num INT PRIMARY KEY,
+    MGR_SSN CHAR(5)
+);
+
+CREATE TABLE EMPLOYEE (
+    EName VARCHAR(50),
+    SSN_No CHAR(5) PRIMARY KEY,
+    DoB DATE,
+    City VARCHAR(50),
+    Sex CHAR(1),
+    Salary DECIMAL(10,2),
+    Manager_SSN CHAR(5),
+    Dept_No INT,
+    FOREIGN KEY (Dept_No) REFERENCES DEPARTMENT(Dept_Num)
+);
+
+CREATE TABLE WORKS_ON (
+    SSN_Num CHAR(5),
+    Project INT,
+    Hours DECIMAL(5,2),
+    PRIMARY KEY (SSN_Num, Project),
+    FOREIGN KEY (SSN_Num) REFERENCES EMPLOYEE(SSN_No)
+);
+==================
+
+
+INSERT INTO DEPARTMENT VALUES ('Research', 1, '12345');
+INSERT INTO DEPARTMENT VALUES ('Development', 2, '23456');
+INSERT INTO DEPARTMENT VALUES ('Sales', 3, '34567');
+INSERT INTO DEPARTMENT VALUES ('Support', 4, '45678');
+INSERT INTO DEPARTMENT VALUES ('HR', 5, '56789');
+============
+INSERT INTO EMPLOYEE VALUES ('John Smith', '45978', '1985-07-12', 'Kolkata', 'M', 70000, NULL, 1);
+INSERT INTO EMPLOYEE VALUES ('Alice Ray', '12345', '1990-01-01', 'Delhi', 'F', 80000, NULL, 1);
+INSERT INTO EMPLOYEE VALUES ('Bob Paul', '23456', '1982-11-02', 'Mumbai', 'M', 65000, '12345', 2);
+INSERT INTO EMPLOYEE VALUES ('Carol Das', '34567', '1978-03-03', 'Chennai', 'F', 60000, '12345', 3);
+INSERT INTO EMPLOYEE VALUES ('David Lee', '45678', '1989-05-05', 'Bangalore', 'M', 75000, '12345', 4);
+INSERT INTO EMPLOYEE VALUES ('Emily Roy', '56789', '1993-06-06', 'Kolkata', 'F', 58000, '23456', 5);
+INSERT INTO EMPLOYEE VALUES ('Frank Saha', '67890', '1991-12-12', 'Delhi', 'M', 62000, '34567', 3);
+INSERT INTO EMPLOYEE VALUES ('Grace Mondal', '78901', '1992-08-08', 'Mumbai', 'F', 55000, '12345', 2);
+
+=========
+INSERT INTO WORKS_ON VALUES ('45978', 1, 10);
+INSERT INTO WORKS_ON VALUES ('45978', 2, 20);
+INSERT INTO WORKS_ON VALUES ('67890', 2, 20);
+INSERT INTO WORKS_ON VALUES ('23456', 3, 15);
+
+===========
+
+Perform the following queries:
+a. Retrieve the social security numbers of all employees who work on project
+number 1, 2, or 3.
+=>SELECT SSN_Num FROM WORKS_ON WHERE Project IN (1, 2, 3);
+
+
+
+b. Retrieve the names of all employees who do not have supervisors.
+=>SELECT EName FROM EMPLOYEE WHERE Manager_SSN IS NULL;
+
+
+
+c. Retrieve the name and city of every employee who works for the ‘Research’ department.
+ (Using join operation in the FROM-clause preferable.)
+=>SELECT E.EName, E.City
+FROM EMPLOYEE E
+JOIN DEPARTMENT D ON E.Dept_No = D.Dept_Num
+WHERE D.Dept_Name = 'Research';
+
+
+
+d. For each department, retrieve the department number, the number of employees in the
+department, and their average salary.
+=>SELECT Dept_No, COUNT(*) AS Num_Employees, AVG(Salary) AS Avg_Salary
+FROM EMPLOYEE
+GROUP BY Dept_No;
+
+
+e. select the social security numbers of all employees who work the same (project, hours)
+combination on some project that employee ‘John Smith’ (whose SSN =45978) works on.
+=>SELECT DISTINCT W2.SSN_Num
+FROM WORKS_ON W1
+JOIN WORKS_ON W2 ON W1.Project = W2.Project AND W1.Hours = W2.Hours
+WHERE W1.SSN_Num = '45978' AND W2.SSN_Num <> '45978';
+
+f. List employees whose salary is greater than the salary of all the employees in department 5.
+=>SELECT EName
+FROM EMPLOYEE
+WHERE Salary > ALL (
+    SELECT Salary FROM EMPLOYEE WHERE Dept_No = 5
+);
+
+g. Show the system date-time in the format ‘22nd October TWO THOUSAND ONE:11:30 AM’
+=>SELECT TO_CHAR(SYSDATE, 'DDth Month "TWO THOUSAND" YYYY:HH:MI AM') AS Custom_Format
+FROM DUAL;
