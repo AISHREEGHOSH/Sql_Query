@@ -1,0 +1,134 @@
+
+Task: 
+Table/s creation ; Value Insertion; Write the query ; Show the Result; Draw ER diagram of your 
+database  and if possible write discussion on your work 
+Employee (person-name, street, city, company-name, salary, manager-name) 
+Company (company-name, city) 
+Consider the database, where the primary keys  
+are underlined. (company-name in Employee is foreign key  
+referencing table Company) 
+Insert 10 records for Employee and 4 records for Company.  
+(keeping eye on queries for the specific insertion). 
+Give an expression in SQL for each of the following queries. 
+a. Find all employees in the database who do not work for First Bank Corporation. 
+b. Give all managers of First Bank Corporation a 10 percent raise. 
+c. Find the names, street addresses, and cities of residence of all employees 
+who work for First Bank Corporation and earn more than $10,000. 
+d. Find all employees in the database who live in the same cities as the companies 
+for which they work. 
+e. Find all employees in the database who live in the same cities and on the 
+same streets as do their managers. 
+f. Define a view consisting of manager-name and the average salary of all employees who work for 
+that manager. 
+g. Find all employees in the database who earn more than each employee of 
+Small Bank Corporation. 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+1. Table Creation
+
+CREATE TABLE Company (
+    company_name VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Employee (
+    person_name VARCHAR(50) PRIMARY KEY,
+    street VARCHAR(50),
+    city VARCHAR(50),
+    company_name VARCHAR(50),
+    salary DECIMAL(10,2),
+    manager_name VARCHAR(50),
+    FOREIGN KEY (company_name) REFERENCES Company(company_name)
+);
+
+ 2. Data Insertion
+ 
+  Company Table (4 Records)
+  
+ INSERT INTO Company VALUES ('First Bank Corporation', 'New York');
+INSERT INTO Company VALUES ('Small Bank Corporation', 'Los Angeles');
+INSERT INTO Company VALUES ('Finance Corp', 'Chicago');
+INSERT INTO Company VALUES ('Tech Innovations', 'Boston');
+
+ Employee Table (10 Records)
+ 
+ INSERT INTO Employee VALUES ('Alice Brown', '123 Elm St', 'New York', 'First Bank Corporation', 12000, 'John Smith');
+INSERT INTO Employee VALUES ('Bob Green', '456 Pine St', 'Los Angeles', 'Small Bank Corporation', 9500, 'Karen White');
+INSERT INTO Employee VALUES ('John Smith', '123 Elm St', 'New York', 'First Bank Corporation', 20000, NULL);
+INSERT INTO Employee VALUES ('Tom Hardy', '789 Oak St', 'Chicago', 'Finance Corp', 14000, 'Rose Lynn');
+INSERT INTO Employee VALUES ('Sara Khan', '321 Maple St', 'Boston', 'Tech Innovations', 13500, 'Rose Lynn');
+INSERT INTO Employee VALUES ('Rose Lynn', '321 Maple St', 'Boston', 'Tech Innovations', 18000, NULL);
+INSERT INTO Employee VALUES ('Emma Clark', '111 Apple St', 'New York', 'First Bank Corporation', 11000, 'John Smith');
+INSERT INTO Employee VALUES ('Mike Tyson', '456 Pine St', 'Los Angeles', 'Small Bank Corporation', 8500, 'Karen White');
+INSERT INTO Employee VALUES ('Karen White', '999 Pine St', 'Los Angeles', 'Small Bank Corporation', 17000, NULL);
+INSERT INTO Employee VALUES ('Ravi Mehra', '123 Elm St', 'New York', 'First Bank Corporation', 13000, 'John Smith');
+
+
+
+ 3. SQL Queries
+ 
+ a. Employees who do not work for First Bank Corporation
+
+SELECT person_name
+FROM Employee
+WHERE company_name <> 'First Bank Corporation';
+
+
+b. Give all managers of First Bank Corporation a 10% raise
+
+UPDATE Employee
+SET salary = salary * 1.10
+WHERE person_name IN (
+    SELECT DISTINCT manager_name
+    FROM Employee
+    WHERE company_name = 'First Bank Corporation'
+    AND manager_name IS NOT NULL
+);
+
+
+c. Names, street, and city of employees earning >$10,000 at First Bank Corporation
+
+SELECT person_name, street, city
+FROM Employee
+WHERE company_name = 'First Bank Corporation' AND salary > 10000;
+
+
+d. Employees who live in same city as their company
+
+SELECT person_name
+FROM Employee
+WHERE city = (
+    SELECT city
+    FROM Company
+    WHERE Company.company_name = Employee.company_name
+);
+
+e. Employees who live on same street and city as their managers
+
+SELECT E1.person_name
+FROM Employee E1, Employee E2
+WHERE E1.manager_name = E2.person_name
+AND E1.street = E2.street
+AND E1.city = E2.city;
+
+f. Define a view: manager-name and average salary of their employees
+
+CREATE VIEW ManagerAvgSalary AS
+SELECT manager_name, AVG(salary) AS avg_salary
+FROM Employee
+WHERE manager_name IS NOT NULL
+GROUP BY manager_name;
+
+g. Employees who earn more than every employee of Small Bank Corporation
+
+SELECT person_name
+FROM Employee
+WHERE salary > ALL (
+    SELECT salary
+    FROM Employee
+    WHERE company_name = 'Small Bank Corporation'
+);
+
+
+

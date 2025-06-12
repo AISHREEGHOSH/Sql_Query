@@ -1,0 +1,120 @@
+  Task: 
+ 
+Table/s creation ; Value Insertion; Write the query ; Show the Result; Draw ER diagram of your 
+database  and if possible write discussion on your work 
+ 
+ 
+  Create the following database and insert the values using Emp and Dept table. 
+  
+               EMPNO ENAME      JOB            MGR     HIREDATE         SAL       COMM     DEPTNO 
+             ………… ----------  --------             ---------   --------------       ----------     -----------  ------------ 
+                 7369     SMITH    CLERK            7902        17-DEC-80       800                               20 
+                 7499    ALLEN   SALESMAN    7698         20-FEB-81      1600        300                 30 
+                 7521    WARD    SALESMAN    7698         22-FEB-81      1250        500                 30 
+                 7566    JONES    MANAGER      7839        02-APR-81      2975                               20 
+                 7654    MARTIN  SALESMAN   7698        28-SEP-81       1250       1400                30 
+                 7698    BLAKE    MANAGER     7839       01-MAY-81     2850                                30 
+                 7782    CLARK    MANAGER     7839       09-JUN-81       2450                               10 
+                 7788    SCOTT     ANALYST      7566       19-APR-87       3000                               20 
+                 7839    KING       PRESIDENT                   17-NOV-81       5000                              10 
+                 7844  TURNER   SALESMAN   7698          08-SEP-81       1500          0                  30 
+ 
+DEPTNO       DNAME              LOC ------              --------------        ------------- 
+    10        ACCOUNTING      NEW YORK 
+    20           RESEARCH         DALLAS 
+    30             SALES               CHICAGO 
+    40          OPERATIONS       BOSTON 
+Note: 
+ 
+EMPNO in Emp is Primary Key; DEPTNO in Dept is Primary Key; 
+DEPTNO in Emp is foreign key referencing Dept  
+ 
+ 
+ 
+i) List all the employees details who are getting commission. 
+ii) List all the employees details who are getting no commission but the salary must be 
+greater than 2000. 
+iii) List all the employees details who does not reported anybody. 
+iv) List all the location available in the dept table. 
+v) List all the employees details according to their salary priority. 
+vi)  List number of employees and total salary department wise.  
+ 
+//////////////////////////////////////////////////////////////////////////
+
+
+
+1. Table Creation
+
+CREATE TABLE Dept (
+    deptno INT PRIMARY KEY,
+    dname VARCHAR(20),
+    loc VARCHAR(20)
+);
+
+CREATE TABLE Emp (
+    empno INT PRIMARY KEY,
+    ename VARCHAR(20),
+    job VARCHAR(20),
+    mgr INT,
+    hiredate DATE,
+    sal DECIMAL(10, 2),
+    comm DECIMAL(10, 2),
+    deptno INT,
+    FOREIGN KEY (deptno) REFERENCES Dept(deptno)
+);
+
+2. Data Insertion
+
+-- Insert into Dept
+INSERT INTO Dept VALUES 
+(10, 'ACCOUNTING', 'NEW YORK'),
+(20, 'RESEARCH', 'DALLAS'),
+(30, 'SALES', 'CHICAGO'),
+(40, 'OPERATIONS', 'BOSTON');
+
+-- Insert into Emp
+INSERT INTO Emp VALUES
+(7369, 'SMITH', 'CLERK', 7902, '1980-12-17', 800, NULL, 20),
+(7499, 'ALLEN', 'SALESMAN', 7698, '1981-02-20', 1600, 300, 30),
+(7521, 'WARD', 'SALESMAN', 7698, '1981-02-22', 1250, 500, 30),
+(7566, 'JONES', 'MANAGER', 7839, '1981-04-02', 2975, NULL, 20),
+(7654, 'MARTIN', 'SALESMAN', 7698, '1981-09-28', 1250, 1400, 30),
+(7698, 'BLAKE', 'MANAGER', 7839, '1981-05-01', 2850, NULL, 30),
+(7782, 'CLARK', 'MANAGER', 7839, '1981-06-09', 2450, NULL, 10),
+(7788, 'SCOTT', 'ANALYST', 7566, '1987-04-19', 3000, NULL, 20),
+(7839, 'KING', 'PRESIDENT', NULL, '1981-11-17', 5000, NULL, 10),
+(7844, 'TURNER', 'SALESMAN', 7698, '1981-09-08', 1500, 0, 30);
+
+ 3. Queries
+ 
+ i) List all the employees details who are getting commission
+
+SELECT * FROM Emp
+WHERE comm IS NOT NULL AND comm > 0;
+
+ii) List all the employees details who are getting no commission but the salary must be greater than 2000
+
+SELECT * FROM Emp
+WHERE (comm IS NULL OR comm = 0) AND sal > 2000;
+
+
+iii) List all the employees details who do not report to anybody
+
+SELECT * FROM Emp
+WHERE mgr IS NULL;
+
+iv) List all the location available in the dept table
+
+SELECT DISTINCT loc FROM Dept;
+
+v) List all the employees details according to their salary priority
+
+SELECT * FROM Emp
+ORDER BY sal DESC;
+
+vi) List number of employees and total salary department wise
+
+SELECT deptno, COUNT(*) AS num_employees, SUM(sal) AS total_salary
+FROM Emp
+GROUP BY deptno;
+
